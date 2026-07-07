@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SEÑAL — Registro Diario</title>
+<style>
+/*
+  SOLUCIONES DE LOS ACERTIJOS (solo visible en el código fuente, no en pantalla):
+  Día 3  — Vigenère (clave LEJANO) "ZVREAHP"              -> ORIENTE
+  Día 6  — Vigenère (clave ISLA) "IELNMUP"                -> AMANECE
+  Día 9  — Invertido + César +5 "TISFQTA XFWTM JHTI"      -> DOCE HORAS VOLANDO
+  Día 12 — César +11 "ACTXPCL GPK"                        -> PRIMERA VEZ
+  Día 15 — Numérico 20-15-18-9-9                          -> TORII
+  Día 18 — Anagrama "ZQOXSDJUNTOSOLS" (señuelos Q,X,Z)     -> LOS DOS JUNTOS
+  Día 21 — Adivinanza montaña                             -> Monte Fuji
+  Día 24 — Adivinanza bandera (sin pistas visuales)       -> Bandera de Japón
+  Día 27 — Adivinanza arroz                               -> Arroz
+  Día 29 — Adivinanza islas (origen volcánico)            -> Islas
+*/
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Courier New',Courier,monospace;background:#050810;min-height:100vh;overflow-x:hidden}
+
+.page{max-width:520px;margin:0 auto;min-height:100vh;background:#0B1220;position:relative;overflow:hidden;padding:2rem 1.4rem 4rem}
+
+.page::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px);pointer-events:none;z-index:50}
+
+.mn{position:fixed;right:4px;top:35%;font-size:5px;color:rgba(212,175,110,0.15);writing-mode:vertical-rl;pointer-events:none;letter-spacing:0.1em;z-index:1}
+
+.hdr{display:flex;justify-content:space-between;font-size:9px;letter-spacing:0.14em;color:rgba(212,175,110,0.55);padding-bottom:0.7rem;border-bottom:1px solid rgba(212,175,110,0.15);margin-bottom:1.6rem;position:relative;z-index:1}
+.hdr .blink{animation:blinkDot 1.6s step-end infinite}
+@keyframes blinkDot{0%,49%{opacity:1}50%,100%{opacity:0.25}}
+
+.station-label{display:inline-block;border:1px solid rgba(212,175,110,0.4);color:#D4AF6E;font-size:8px;letter-spacing:0.22em;padding:3px 10px;margin-bottom:1.1rem;position:relative;z-index:1}
+
+.big-title{font-size:34px;font-weight:bold;line-height:1.05;margin-bottom:0.35rem;color:#EDEAE2;position:relative;z-index:1;letter-spacing:0.01em}
+.subtitle{font-size:9px;color:rgba(237,234,226,0.45);letter-spacing:0.14em;margin-bottom:1.7rem;position:relative;z-index:1}
+
+.radar-wrap{display:flex;justify-content:center;margin-bottom:1.7rem;position:relative;z-index:1}
+.radar{width:150px;height:150px;border-radius:50%;position:relative;background:radial-gradient(circle, rgba(212,175,110,0.06) 0%, rgba(11,18,32,0.9) 70%);border:1px solid rgba(212,175,110,0.35);overflow:hidden}
+.radar::before,.radar::after{content:'';position:absolute;border:1px solid rgba(212,175,110,0.18);border-radius:50%}
+.radar::before{width:66%;height:66%;top:17%;left:17%}
+.radar::after{width:33%;height:33%;top:33.5%;left:33.5%}
+.radar-cross{position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(212,175,110,0.15)}
+.radar-cross2{position:absolute;top:50%;left:0;width:100%;height:1px;background:rgba(212,175,110,0.15)}
+/* Rotor: un único elemento que gira; línea y brillo van dentro, así comparten
+   siempre el mismo eje y la misma velocidad — nunca se desalinean entre sí. */
+.radar-rotor{position:absolute;top:50%;left:50%;width:0;height:0;animation:sweep 4s linear infinite}
+@keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.radar-sweep{position:absolute;top:-0.5px;left:0;width:75px;height:1px;background:linear-gradient(90deg, rgba(212,175,110,0.95), transparent)}
+.radar-glow{position:absolute;top:-75px;left:-75px;width:150px;height:150px;border-radius:50%;background:conic-gradient(from 20deg, transparent 0deg, rgba(212,175,110,0.32) 70deg, transparent 70.5deg)}
+.radar-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:#D4AF6E;box-shadow:0 0 6px 2px rgba(212,175,110,0.5);opacity:0.1;animation:blip 4s ease-out infinite}
+@keyframes blip{0%{opacity:1;transform:scale(1.7)}8%{opacity:1;transform:scale(1)}100%{opacity:0.1;transform:scale(1)}}
+
+.countdown-box{border:1px solid rgba(212,175,110,0.25);background:rgba(212,175,110,0.03);padding:1.1rem 1rem;margin-bottom:1.7rem;position:relative;z-index:1}
+.cd-label{font-size:8px;letter-spacing:0.18em;color:rgba(212,175,110,0.6);text-transform:uppercase;margin-bottom:0.6rem;text-align:center}
+.cd-grid{display:flex;justify-content:center;gap:0.9rem}
+.cd-unit{text-align:center}
+.cd-num{font-size:26px;font-weight:bold;color:#EDEAE2;line-height:1;font-variant-numeric:tabular-nums}
+.cd-sub{font-size:7px;letter-spacing:0.14em;color:rgba(212,175,110,0.5);margin-top:0.3rem;text-transform:uppercase}
+.cd-sep{font-size:20px;color:rgba(212,175,110,0.25);align-self:flex-start;margin-top:2px}
+
+.section-label{font-size:9px;letter-spacing:0.16em;color:#D4AF6E;text-transform:uppercase;font-weight:bold;margin-bottom:0.5rem;position:relative;z-index:1}
+.section-note{font-size:9.5px;color:rgba(237,234,226,0.4);margin-bottom:1.3rem;position:relative;z-index:1;line-height:1.6}
+
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;position:relative;z-index:1;margin-bottom:1.5rem}
+.cell{aspect-ratio:1;border:1px solid rgba(212,175,110,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;background:rgba(212,175,110,0.02);transition:transform 0.15s, background 0.2s}
+.cell:active{transform:scale(0.94)}
+.cell.locked{background:rgba(255,255,255,0.015);cursor:default;border-color:rgba(212,175,110,0.08)}
+.cell.locked:active{transform:none}
+.cell.done{background:rgba(212,175,110,0.08);border-color:rgba(212,175,110,0.5)}
+.cell.today{border-color:#D4AF6E;border-width:1.5px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,175,110,0.3)}50%{box-shadow:0 0 0 4px rgba(212,175,110,0.08)}}
+.cell-num{font-size:9px;color:rgba(212,175,110,0.4);font-weight:bold;position:absolute;top:3px;left:5px}
+.cell-icon{font-size:13px;color:rgba(212,175,110,0.2)}
+.cell.done .cell-icon{color:#D4AF6E}
+.cell.today .cell-icon{color:#D4AF6E}
+.cell-check{font-size:13px;color:#D4AF6E}
+.cell.puzzle::before{content:'';position:absolute;bottom:3px;right:4px;width:4px;height:4px;border-radius:50%;background:rgba(212,175,110,0.55)}
+
+.reveal-panel{display:none;border-left:2px solid rgba(212,175,110,0.55);background:rgba(212,175,110,0.04);padding:1.1rem 1.15rem;margin-bottom:1.6rem;position:relative;z-index:1;animation:fadeUp 0.35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.reveal-panel.show{display:block}
+.rp-label{font-size:8px;letter-spacing:0.16em;color:rgba(212,175,110,0.6);text-transform:uppercase;margin-bottom:0.5rem}
+.rp-date{font-size:9px;color:rgba(212,175,110,0.85);margin-bottom:0.7rem;letter-spacing:0.08em}
+.rp-text{font-size:14px;color:#EDEAE2;line-height:1.8;letter-spacing:0.01em;min-height:1.4em;white-space:pre-wrap}
+.cur{display:inline-block;width:2px;height:1em;background:#D4AF6E;vertical-align:text-bottom;margin-left:1px;animation:blink 0.7s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.rp-close{margin-top:1rem;font-size:8px;letter-spacing:0.14em;color:rgba(212,175,110,0.5);text-transform:uppercase;cursor:pointer;display:inline-block}
+
+.legend{display:flex;gap:1.2rem;font-size:7.5px;color:rgba(237,234,226,0.4);letter-spacing:0.08em;margin-bottom:1.6rem;position:relative;z-index:1;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-dot{width:8px;height:8px;border:1px solid rgba(212,175,110,0.3)}
+.legend-dot.done{background:rgba(212,175,110,0.18);border-color:rgba(212,175,110,0.5)}
+.legend-dot.today{border-color:#D4AF6E;border-width:1.5px}
+.legend-dot.puzzle{position:relative}
+.legend-dot.puzzle::after{content:'';position:absolute;bottom:-1px;right:-1px;width:4px;height:4px;border-radius:50%;background:rgba(212,175,110,0.6)}
+
+.final-banner{display:none;border:1.5px solid #D4AF6E;background:rgba(212,175,110,0.06);padding:1.5rem;text-align:center;margin-bottom:1.6rem;position:relative;z-index:1}
+.final-banner.show{display:block;animation:fadeUp 0.5s ease}
+.fb-title{font-size:20px;font-weight:bold;color:#D4AF6E;margin-bottom:0.6rem;letter-spacing:0.02em}
+.fb-sub{font-size:9.5px;color:#EDEAE2;line-height:1.7}
+
+.footer-note{font-size:8px;color:rgba(212,175,110,0.35);text-align:center;letter-spacing:0.12em;margin-top:1.2rem;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="mn">señal privada // solo dos // no distribuir</div>
+
+  <div class="hdr"><span><span class="blink">●</span> ESTACIÓN DE SEÑAL</span><span id="ts"></span></div>
+  <div class="station-label">RECEPCIÓN ACTIVA</div>
+
+  <div class="big-title">REGISTRO<br>DE SEÑAL</div>
+  <div class="subtitle">una lectura se desbloquea cada día — algo se acerca</div>
+
+  <div class="radar-wrap">
+    <div class="radar">
+      <div class="radar-cross"></div>
+      <div class="radar-cross2"></div>
+      <div class="radar-rotor">
+        <div class="radar-glow"></div>
+        <div class="radar-sweep"></div>
+      </div>
+      <div class="radar-dot" style="top:28%;left:62%;animation-delay:3.32s"></div>
+      <div class="radar-dot" style="top:64%;left:38%;animation-delay:1.45s"></div>
+    </div>
+  </div>
+
+  <div class="countdown-box">
+    <div class="cd-label">tiempo hasta la señal completa</div>
+    <div class="cd-grid">
+      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-sub">días</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-sub">hrs</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-sub">min</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-sub">seg</div></div>
+    </div>
+  </div>
+
+  <div class="final-banner" id="finalBanner">
+    <div class="fb-title" id="fbTitle"></div>
+    <div class="fb-sub" id="fbSub"></div>
+  </div>
+
+  <div class="section-label">Bitácora — 31 lecturas</div>
+  <div class="section-note">Cada casilla es un día. Las bloqueadas se abren a medianoche. Toca una casilla disponible para leer la lectura de ese día. El punto dorado marca los días con acertijo.</div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot"></div> bloqueado</div>
+    <div class="legend-item"><div class="legend-dot today"></div> hoy</div>
+    <div class="legend-item"><div class="legend-dot done"></div> leído</div>
+    <div class="legend-item"><div class="legend-dot puzzle"></div> acertijo</div>
+  </div>
+
+  <div class="reveal-panel" id="revealPanel">
+    <div class="rp-label" id="rpLabel">Lectura</div>
+    <div class="rp-date" id="rpDate"></div>
+    <div class="rp-text" id="rpText"></div>
+    <div class="rp-close" onclick="closePanel()">— cerrar —</div>
+  </div>
+
+  <hr style="border:none;border-top:1px solid rgba(212,175,110,0.15);margin:1.4rem 0">
+  <div class="footer-note">estación de señal — privado — solo dos</div>
+</div>
+
+<script>
+const START = new Date(2026, 6, 6);
+const REVEAL = new Date(2026, 7, 5, 9, 0, 0);
+
+const puzzleDays = new Set([2,5,8,11,14,17,20,23,26,28]); // días 3,6,9,12,15,18,21,24,27,29
+
+const entries = [
+  "Señal recibida.",
+  "Algo se ha puesto en marcha.",
+  "CIFRADO VIGENÈRE (clave: AVION):\n\nLZROAO",
+  "Todavía no hay nada que descifrar aquí.",
+  "Prepara el pasaporte. Lo demás, espera.",
+  "CIFRADO VIGENÈRE (clave: ISLA):\n\nIELNMUP",
+  "Hay una fecha marcada en un calendario que no es el tuyo.",
+  "Esto no es un drop.",
+  "TEXTO INVERTIDO + CÉSAR (+5):\n\nTYNXTUJI SJZG",
+  "Un mes exacto.",
+  "La maleta va a pesar menos de lo que crees.",
+  "CIFRADO CÉSAR (+11):\n\nACTXPCL GPK",
+  "Alguien ya sabe la respuesta. Tú todavía no.",
+  "Faltan menos días de los que llevas esperando.",
+  "CIFRADO NUMÉRICO (A=1, B=2...):\n\n20-15-18-9-9",
+  "Sigue sin haber nada que descifrar aquí.",
+  "Cuenta atrás confirmada. Nada más que decir hoy.",
+  "ANAGRAMA — 15 letras, 3 no pintan nada, sin espacios:\n\nZQOXSDJUNTOSOLS",
+  "Hoy no hay pista. Solo paciencia.",
+  "El silencio también forma parte del plan.",
+  "ADIVINANZA:\n\nNo es un dios, aunque lo parece.\nCorona nieve incluso en verano.\nCuando el aire está en calma,\nse refleja en un lago cercano.\n\n¿Qué soy?",
+  "Guarda energía. Lo que viene pesa más que lo de hoy.",
+  "Nadie más sabe leer esta bitácora. Solo tú.",
+  "ADIVINANZA:\n\nNo llevo estrellas, ni rayas, ni animales, ni escudos.\nSolo una idea, pintada de la forma más simple que existe.\nMi país lleva mi significado escrito en su propio nombre,\nen su propia lengua.\n\n¿Qué soy?",
+  "Sin acertijo hoy. Respira.",
+  "El reloj sigue corriendo, aunque hoy no lo veas.",
+  "ADIVINANZA:\n\nSe cultiva en agua,\nse sirve en cada comida,\ny nunca falta en una mesa de allí.\n\n¿Qué es?",
+  "Ya falta menos de lo que parece.",
+  "ADIVINANZA:\n\nNacimos del fuego, bajo el agua,\nsin que nadie nos viera nacer.\nNos contamos por miles,\npero vivimos como si fuéramos una sola.\nNinguno de nosotros toca al vecino,\ny aun así compartimos el mismo nombre.\n\n¿Qué somos?",
+  "Mañana: revelación total.",
+  "__REVEAL__"
+];
+
+const finalTitle = "SEÑAL RECIBIDA.";
+const finalSub = "Mira lo que se te ha entregado hoy.<br>— estación de señal";
+
+function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+function getToday() { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), now.getDate()); }
+function formatDate(d) { const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC']; return String(d.getDate()).padStart(2,'0') + ' ' + meses[d.getMonth()]; }
+
+const grid = document.getElementById('grid');
+const today = getToday();
+const todayIndex = daysBetween(START, today);
+const readState = JSON.parse(localStorage.getItem('signal_read') || '{}');
+
+for (let i = 0; i < entries.length; i++) {
+  const cellDate = new Date(START);
+  cellDate.setDate(cellDate.getDate() + i);
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  if (puzzleDays.has(i)) cell.classList.add('puzzle');
+
+  if (i > todayIndex) {
+    cell.classList.add('locked');
+    cell.innerHTML = '<span class="cell-num">' + (i+1) + '</span><span class="cell-icon">&#9679;</span>';
+  } else {
+    if (i === todayIndex) cell.classList.add('today');
+    if (readState[i]) cell.classList.add('done');
+    const icon = readState[i] ? '<span class="cell-check">&#10003;</span>' : '<span class="cell-icon">&#9675;</span>';
+    cell.innerHTML = '<span class="cell-num">' + (i+1) + '</span>' + icon;
+    cell.addEventListener('click', function(){ openEntry(i, cellDate); });
+  }
+  grid.appendChild(cell);
+}
+
+let activeTypingInterval = null;
+
+function openEntry(i, cellDate) {
+  const panel = document.getElementById('revealPanel');
+  const label = document.getElementById('rpLabel');
+  const dateEl = document.getElementById('rpDate');
+  const textEl = document.getElementById('rpText');
+
+  if (activeTypingInterval) { clearInterval(activeTypingInterval); activeTypingInterval = null; }
+
+  label.textContent = 'Lectura ' + (i+1) + ' / ' + entries.length;
+  dateEl.textContent = formatDate(cellDate);
+  textEl.innerHTML = '';
+  panel.classList.add('show');
+  panel.scrollIntoView({behavior:'smooth', block:'center'});
+
+  const text = entries[i] === '__REVEAL__' ? 'Abre lo que se te ha entregado hoy.' : entries[i];
+  let idx = 0;
+  activeTypingInterval = setInterval(function(){
+    if (idx < text.length) { textEl.textContent += text.charAt(idx); idx++; }
+    else { clearInterval(activeTypingInterval); activeTypingInterval = null; const cur = document.createElement('span'); cur.className = 'cur'; textEl.appendChild(cur); }
+  }, 20);
+
+  readState[i] = true;
+  localStorage.setItem('signal_read', JSON.stringify(readState));
+  const cells = grid.children;
+  if (!cells[i].classList.contains('locked')) {
+    cells[i].classList.add('done');
+    cells[i].innerHTML = '<span class="cell-num">' + (i+1) + '</span><span class="cell-check">&#10003;</span>';
+  }
+}
+
+function closePanel() { document.getElementById('revealPanel').classList.remove('show'); }
+
+function updateCountdown() {
+  const now = new Date();
+  const diff = REVEAL - now;
+  if (diff <= 0) {
+    document.getElementById('cd-d').textContent = '00';
+    document.getElementById('cd-h').textContent = '00';
+    document.getElementById('cd-m').textContent = '00';
+    document.getElementById('cd-s').textContent = '00';
+    const banner = document.getElementById('finalBanner');
+    banner.classList.add('show');
+    document.getElementById('fbTitle').textContent = finalTitle;
+    document.getElementById('fbSub').innerHTML = finalSub;
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+function updateTS() {
+  const now = new Date();
+  const dias = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  document.getElementById('ts').textContent = dias[now.getDay()] + ' ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+updateTS();
+setInterval(updateTS, 1000);
+</script>
+</body>
+</html>
