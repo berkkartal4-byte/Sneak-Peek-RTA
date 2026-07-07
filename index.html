@@ -7,19 +7,16 @@
 <style>
 /*
   SOLUCIONES DE LOS ACERTIJOS (solo visible en el código fuente, no en pantalla):
-  Día 15 — César +4 "WSP REGMIRXI"        -> SOL NACIENTE
-  Día 16 — Acróstico TOKIO                -> TOKIO
-  Día 17 — Anagrama "J O N A P R"         -> JAPÓN (sobra R)
-  Día 18 — Adivinanza montaña             -> Monte Fuji
-  Día 19 — Latitud 35N (ambiguo a propósito)
-  Día 20 — Numérico 20-15-18-9-9          -> TORII
-  Día 21 — Adivinanza bandera             -> Bandera de Japón
-  Día 22 — Adivinanza arroz               -> Arroz
-  Día 23 — César -3 "PEFKHXKPBK"          -> SHINKANSEN
-  Día 24 — Adivinanza islas               -> Islas
-  Día 25 — Vending machines (ambientación, sin respuesta única)
-  Día 26 — César +7 "OHULKH"              -> HANEDA
-  Día 27 — Adivinanza papel               -> Papel de arroz / shoji
+  Día 3  — Vigenère (clave LEJANO) "ZVREAHP"              -> ORIENTE
+  Día 6  — Vigenère (clave ISLA) "IELNMUP"                -> AMANECE
+  Día 9  — Invertido + César +5 "TISFQTA XFWTM JHTI"      -> DOCE HORAS VOLANDO
+  Día 12 — César +11 "ACTXPCL GPK"                        -> PRIMERA VEZ
+  Día 15 — Numérico 20-15-18-9-9                          -> TORII
+  Día 18 — Anagrama "ZQOXSDJUNTOSOLS" (señuelos Q,X,Z)     -> LOS DOS JUNTOS
+  Día 21 — Adivinanza montaña                             -> Monte Fuji
+  Día 24 — Adivinanza bandera (sin pistas visuales)       -> Bandera de Japón
+  Día 27 — Adivinanza arroz                               -> Arroz
+  Día 29 — Adivinanza islas (origen volcánico)            -> Islas
 */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Courier New',Courier,monospace;background:#050810;min-height:100vh;overflow-x:hidden}
@@ -176,38 +173,38 @@ body{font-family:'Courier New',Courier,monospace;background:#050810;min-height:1
 const START = new Date(2026, 6, 6);
 const REVEAL = new Date(2026, 7, 5, 9, 0, 0);
 
-const puzzleDays = new Set([14,15,16,17,18,19,20,21,22,23,24,25,26]);
+const puzzleDays = new Set([2,5,8,11,14,17,20,23,26,28]); // días 3,6,9,12,15,18,21,24,27,29
 
 const entries = [
   "Señal recibida.",
   "Algo se ha puesto en marcha.",
-  "Cuenta atrás iniciada.",
+  "CIFRADO VIGENÈRE (clave: AVION):\n\nLZROAO",
   "Todavía no hay nada que descifrar aquí.",
   "Prepara el pasaporte. Lo demás, espera.",
+  "CIFRADO VIGENÈRE (clave: ISLA):\n\nIELNMUP",
   "Hay una fecha marcada en un calendario que no es el tuyo.",
-  "26 días.",
   "Esto no es un drop.",
+  "TEXTO INVERTIDO + CÉSAR (+5):\n\nTYNXTUJI SJZG",
   "Un mes exacto.",
   "La maleta va a pesar menos de lo que crees.",
+  "CIFRADO CÉSAR (+11):\n\nACTXPCL GPK",
   "Alguien ya sabe la respuesta. Tú todavía no.",
   "Faltan menos días de los que llevas esperando.",
-  "Sigue sin haber nada que descifrar aquí.",
-  "Última entrada sin acertijos. Desde mañana, cambia el juego.",
-  "CIFRADO CÉSAR (+4):\n\nWSP REGMIRXI",
-  "ACRÓSTICO — une la primera letra de cada línea:\n\nTren que no conoce el retraso.\nOlas rompiendo contra un archipiélago.\nKimonos que aún se llevan en días señalados.\nIslas que se cuentan por miles.\nOriente que amanece antes que nosotros.",
-  "ANAGRAMA (sobra una letra):\n\nJ O N A P R",
-  "ADIVINANZA:\n\nNo es un dios, aunque lo parece.\nCorona nieve incluso en verano.\nCuando el aire está en calma,\nse refleja en un lago cercano.\n\n¿Qué soy?",
-  "DATO SUELTO:\n\nLatitud: 35°N.\nLongitud: clasificada.",
   "CIFRADO NUMÉRICO (A=1, B=2...):\n\n20-15-18-9-9",
-  "ADIVINANZA:\n\nBlanco como el papel.\nUn único círculo rojo.\nNinguna estrella lo acompaña.\n\n¿Qué es?",
+  "Sigue sin haber nada que descifrar aquí.",
+  "Cuenta atrás confirmada. Nada más que decir hoy.",
+  "ANAGRAMA — 15 letras, 3 no pintan nada, sin espacios:\n\nZQOXSDJUNTOSOLS",
+  "Hoy no hay pista. Solo paciencia.",
+  "El silencio también forma parte del plan.",
+  "ADIVINANZA:\n\nNo es un dios, aunque lo parece.\nCorona nieve incluso en verano.\nCuando el aire está en calma,\nse refleja en un lago cercano.\n\n¿Qué soy?",
+  "Guarda energía. Lo que viene pesa más que lo de hoy.",
+  "Nadie más sabe leer esta bitácora. Solo tú.",
+  "ADIVINANZA:\n\nNo llevo estrellas, ni rayas, ni animales, ni escudos.\nSolo una idea, pintada de la forma más simple que existe.\nMi país lleva mi significado escrito en su propio nombre,\nen su propia lengua.\n\n¿Qué soy?",
+  "Sin acertijo hoy. Respira.",
+  "El reloj sigue corriendo, aunque hoy no lo veas.",
   "ADIVINANZA:\n\nSe cultiva en agua,\nse sirve en cada comida,\ny nunca falta en una mesa de allí.\n\n¿Qué es?",
-  "CIFRADO CÉSAR (−3):\n\nPEFKHXKPBK",
-  "ADIVINANZA:\n\nMiles de piezas de tierra rodeadas de mar,\ny ninguna se toca con la siguiente.\n\n¿Qué somos?",
-  "Sus máquinas venden desde bebidas calientes hasta paraguas,\na cualquier hora del día o de la noche.\n\n¿Dónde estamos?",
-  "CIFRADO CÉSAR (+7):\n\nOHULKH",
-  "ADIVINANZA:\n\nSus paredes antiguas eran de papel,\ny aun así resistían generaciones.\n\n¿De qué material hablamos?",
-  "Dos días.",
-  "Un día. La señal es fuerte.",
+  "Ya falta menos de lo que parece.",
+  "ADIVINANZA:\n\nNacimos del fuego, bajo el agua,\nsin que nadie nos viera nacer.\nNos contamos por miles,\npero vivimos como si fuéramos una sola.\nNinguno de nosotros toca al vecino,\ny aun así compartimos el mismo nombre.\n\n¿Qué somos?",
   "Mañana: revelación total.",
   "__REVEAL__"
 ];
